@@ -350,18 +350,7 @@ $$
 
 ---
 # (b) 總輸入時間與 $k$ 的關係圖
-t_input (sec)
-^
-|           *
-|         *
-|       *
-|     *
-|   *
-| *
-+------------------------> k
- 1 10      30     50   64
-
-（斜率為 10，y-intercept 為 200，即 t_input = 10k + 200）
+![image](https://github.com/user-attachments/assets/2d48eb97-18fd-41fe-b093-371dc5863aa1)
 
 ---
 
