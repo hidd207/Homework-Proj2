@@ -192,6 +192,43 @@ int main() {
 |10000|31|13.29|2.33|
 多次測試，隨機 BST 的高度約為 log₂(n) 的 1.7～2.5 倍。
 ---
+# 程式實作
+(b)
+```cpp
+void remove(int key) {
+    root = deleteNode(root, key);
+}
+Node* deleteNode(Node* node, int key) {
+    if (!node) return nullptr;
+    if (key < node->val)
+        node->left = deleteNode(node->left, key);
+    else if (key > node->val)
+        node->right = deleteNode(node->right, key);
+    else {
+        if (!node->left) {
+            Node* r = node->right;
+            delete node;
+            return r;
+        } else if (!node->right) {
+            Node* l = node->left;
+            delete node;
+            return l;
+        }
+        Node* succ = node->right;
+        while (succ->left) succ = succ->left;
+        node->val = succ->val;
+        node->right = deleteNode(node->right, succ->val);
+    }
+    return node;
+}
+```
+# 時間複雜度分析
+刪除操作需要先搜尋節點，再進行替換，最壞情況與搜尋相同，時間複雜度為 $O(h)$，其中 $h$ 為樹高。  
+隨機/平衡 BST：$O(\log n)$。  
+最壞（退化為鏈表）：$O(n)$。  
+若為平衡二元搜尋樹則可保證 $O(\log n)$。  
+---
+
 
 
 
