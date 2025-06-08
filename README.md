@@ -263,6 +263,109 @@ Node* deleteNode(Node* node, int key) {
 (b)
 假設將所有區段合併成一個的 CPU 時間為 $t_{CPU}$（可假設與 $k$ 無關，因此為常數）。給定：$t_s = 80$ 毫秒，$t_l = 20$ 毫秒，$n = 200,000$，$m = 64$，$t_t = 10^{-3}$ 秒/筆，$S = 2000$。請大略畫出總輸入時間 $t_{input}$ 與 $k$ 的關係圖。是否總會存在某個 $k$ 使得 $t_{CPU} \approx t_{input}$？
 
+---
+# 解題策略
+- 根據外部排序 k-way merge 的理論，每 run 需分多次將資料載入記憶體，每次成本包含 seek、latency 和傳送多筆資料的總和。
+- 總輸入時間 $t_{input}$ 公式為：
+  $$
+  t_{input} = \frac{n k}{S}(t_s + t_l) + n t_t
+  $$
+- 依題目參數，設計 C++ 程式以 for 迴圈計算 k=1~64 時的輸入時間。
+
+---
+# 程式實作
+```cpp
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+int main() {
+    const double t_s = 0.08;   
+    const double t_l = 0.02;   
+    const double t_t = 0.001;  
+    const int n = 200000;      
+    const int S = 2000;       
+
+    cout << "k\tTotal Input Time (sec)\n";
+    cout << "---------------------------------\n";
+    for (int k = 1; k <= 64; ++k) {
+        double t_input = (double(n) * k / S) * (t_s + t_l) + n * t_t;
+        cout << setw(2) << k << "\t" << fixed << setprecision(2) << t_input << endl;
+    }
+    return 0;
+}
+```
+---
+# 效能分析
+$t_{input}$ 與 $k$ 呈線性正比，k 越大，每輪 merge 的 I/O 成本越高。  
+實際外部排序效能還會受 CPU 和 buffer 大小等因素影響。  
+
+---
+### (a)  總輸入時間推導
+
+根據外部排序 k-way merge 的分析，總輸入時間 $t_{input}$ 公式為：
+
+$$
+t_{input} = \frac{n k}{S}(t_s + t_l) + n t_t
+$$
+
+其中：
+- $n$ ：資料總筆數
+- $k$ ：k-way merge 的 k 值
+- $S$ ：記憶體可容納筆數
+- $t_s$ ：每次 seek time
+- $t_l$ ：每次 latency
+- $t_t$ ：傳送一筆資料所需時間
+
+將題目數值帶入（$n=200{,}000$，$S=2{,}000$，$t_s=0.08$，$t_l=0.02$，$t_t=0.001$）：
+
+$$
+t_{input} = \frac{200,\!000 \times k}{2,\!000} \times (0.08 + 0.02) + 200,\!000 \times 0.001 \\
+= 100k \times 0.1 + 200 \\
+= 10k + 200
+$$
+
+所以 $k = 1 \sim 64$ 時，可得 $t_{input} = 210, 220, 230, \ldots, 840$（單位：秒）。
+
+---
+# 測試與驗證
+|  k  | t_input (sec) |
+|-----|---------------|
+|  1  |     210       |
+|  2  |     220       |
+|  3  |     230       |
+|  4  |     240       |
+|  5  |     250       |
+|  6  |     260       |
+|  7  |     270       |
+|  8  |     280       |
+|  9  |     290       |
+| 10  |     300       |
+| 20  |     400       |
+| 30  |     500       |
+| 40  |     600       |
+| 50  |     700       |
+| 60  |     800       |
+| 64  |     840       |
+
+---
+# (b) 總輸入時間與 $k$ 的關係圖
+t_input (sec)
+^
+|           *
+|         *
+|       *
+|     *
+|   *
+| *
++------------------------> k
+ 1 10      30     50   64
+
+（斜率為 10，y-intercept 為 200，即 t_input = 10k + 200）
+
+---
+
+
 
 
 
