@@ -7,13 +7,12 @@
 請寫一個 C++ 抽象類別（abstract class）針對 ADT MinPQ用來定義一個最小優先佇列。接著，寫一個繼承這個抽象類別的 C++ 類別 MinHeap，並實作 MinPQ 所有的虛擬函式（virtual functions）。每個函式的時間複雜度應該和 MaxHeap 的對應函式相同。
 ---
 # 解題策略
-- 利用 vector 作為底層儲存資料，採用完全二元樹邏輯。
-- 插入元素時採用「sift up」操作，刪除堆頂時用「sift down」。
-- 使用虛擬類別設計介面，利於擴充與多型測試。  
-  
+利用 vector 作為底層儲存資料，採用完全二元樹邏輯。
+插入元素時採用「sift up」操作，刪除堆頂時用「sift down」。
+使用虛擬類別設計介面，利於擴充與多型測試。   
 ---
 # 程式實作
-```
+```cpp
 #include <vector>
 #include <stdexcept>
 #include <iostream>
@@ -100,3 +99,109 @@ output輸出為1 2 3 4 5 6 7 8 9 10
 (a) 寫一個隨機插入的 BST 程式並量測高度，並畫出高度與 log₂n 的比值。  
 (b) 寫出 BST 的刪除節點函數，並分析時間複雜度。
 ---
+# 題目敘述 
+(a) 給定 $n$ 筆不同的整數資料，請以隨機順序依序插入二元搜尋樹。觀察並統計每一棵隨機生成 BST 的高度，計算其與 $\log_2 n$ 的比值，並分析此比值的變動情形。  
+(b) 實作 BST 節點刪除操作，並討論其時間複雜度。
+---
+# 解題策略
+先建立 $1 \sim n$ 的整數陣列，利用隨機演算法（如 `std::shuffle`）打亂順序，依序插入 BST。
+插入每一筆資料時，維持 BST 的基本性質，節點值左小右大。
+完成插入後，撰寫遞迴函式計算樹的最大高度，並與理論值 $\log_2 n$ 相除得比值。
+針對刪除操作，實作經典 BST 刪除演算法，涵蓋葉節點、單子樹節點及雙子樹節點三種情況。
+設計主程式可重複進行多組隨機插入，並記錄/輸出樹高與理論比值做分析與驗證。
+---
+# 程式實作
+(a) 
+```cpp
+#include <iostream>
+#include <random>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+struct Node {
+    int val;
+    Node* left;
+    Node* right;
+    Node(int v) : val(v), left(nullptr), right(nullptr) {}
+};
+
+class BST {
+public:
+    Node* root;
+    BST() : root(nullptr) {}
+    void insert(int val) { root = insert(root, val); }
+    int height() { return height(root); }
+    void clear() { clear(root); root = nullptr; }
+private:
+    Node* insert(Node* node, int val) {
+        if (!node) return new Node(val);
+        if (val < node->val) node->left = insert(node->left, val);
+        else node->right = insert(node->right, val);
+        return node;
+    }
+    int height(Node* node) {
+        if (!node) return 0;
+        return 1 + max(height(node->left), height(node->right));
+    }
+    void clear(Node* node) {
+        if (!node) return;
+        clear(node->left);
+        clear(node->right);
+        delete node;
+    }
+};
+
+int main() {
+    vector<int> ns = {100, 500, 1000, 2000, 3000, 5000, 10000};
+    random_device rd;
+    mt19937 gen(rd());
+
+    cout << " n     Height   log2(n)   Height/log2(n)\n";
+    cout << "-----------------------------------------\n";
+    for (int n : ns) {
+        BST tree;
+        vector<int> vals(n);
+        for (int i = 0; i < n; ++i) vals[i] = i + 1;
+        shuffle(vals.begin(), vals.end(), gen);
+        for (int v : vals) tree.insert(v);
+
+        int h = tree.height();
+        double logn = log2(n);
+        double ratio = h / logn;
+        printf("%5d   %6d   %7.2f      %7.2f\n", n, h, logn, ratio);
+    }
+    return 0;
+}
+```
+# 效能分析
+每次插入平均 $O(\log n)$，最壞 $O(n)$。  
+高度與 log₂(n) 的比值可反映隨機 BST 的高度波動。  
+空間複雜度 $O(n)$。  
+---
+# 測試與驗證
+n	Height	log₂(n)	Height/log₂(n)
+100	15	6.64	2.26
+500	16	8.97	1.78
+1000	24	9.97	2.41
+2000	24	10.97	2.19
+3000	28	11.55	2.42
+5000	26	12.29	2.12
+10000	31	13.29	2.33
+
+多次測試，隨機 BST 的高度約為 log₂(n) 的 1.7～2.5 倍。
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
