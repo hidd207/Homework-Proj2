@@ -238,6 +238,7 @@ Node* deleteNode(Node* node, int key) {
 隨機/平衡 BST：$O(\log n)$。  
 最壞（退化為鏈表）：$O(n)$。  
 若為平衡二元搜尋樹則可保證 $O(\log n)$。  
+
 ---
 # 申論與開發報告
 
